@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prayers Time</title>
+    <link href="https://cdn.jsdelivr.net/npm/daisyui@4.12.13/dist/full.min.css" rel="stylesheet" type="text/css" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://kit.fontawesome.com/41bcea2ae3.js" crossorigin="anonymous"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        .current-prayer {
+            border: 2px solid #4CAF50;
+        }
+    </style>
+</head>
+<body>
+
+    <div id="locationPrompt" class="container mx-auto flex flex-col items-center justify-center h-screen">
+        <h2 class="text-xl font-bold mb-4">Location Access</h2>
+        <p>This page would like to access your location. Do you allow?</p>
+        
+        <div class="flex flex-row mt-2"><button id="denyLocation" class="btn btn-neutral mr-2 btn-sm">Deny</button><button id="allowLocation" class="btn btn-success btn-sm">Allow</button></div>
+    </div>
+
+    <div id="mainContent" class="container mx-auto p-4" style="display: none;">
+        <h1 class="text-2xl font-bold mb-4">Waktu Solat</h1>
+        <div id="allPrayerTimes" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <div id="fajrCard" class="prayer-time flex flex-col items-center p-4 bg-gray-800 rounded-lg shadow-md">
+                <img src="images/fajr.png" alt="Fajr" class="h-12 w-12 mb-2">
+                <h3 class="font-semibold text-lg mb-1 text-white">Subuh</h3>
+                <p id="fajrTime" class="text-xl font-bold text-white"></p>
+            </div>
+            <div id="dhuhrCard" class="prayer-time flex flex-col items-center p-4 bg-gray-800 rounded-lg shadow-md">
+                <img src="images/dhuhr.png" alt="Dhuhr" class="h-12 w-12 mb-2">
+                <h3 class="font-semibold text-lg mb-1 text-white">Zuhur</h3>
+                <p id="dhuhrTime" class="text-xl font-bold text-white"></p>
+            </div>
+            <div id="asrCard" class="prayer-time flex flex-col items-center p-4 bg-gray-800 rounded-lg shadow-md">
+                <img src="images/asr.png" alt="Asr" class="h-12 w-12 mb-2">
+                <h3 class="font-semibold text-lg mb-1 text-white">Asar</h3>
+                <p id="asrTime" class="text-xl font-bold text-white"></p>
+            </div>
+            <div id="maghribCard" class="prayer-time flex flex-col items-center p-4 bg-gray-800 rounded-lg shadow-md">
+                <img src="images/maghrib.png" alt="Maghrib" class="h-12 w-12 mb-2">
+                <h3 class="font-semibold text-lg mb-1 text-white">Maghrib</h3>
+                <p id="maghribTime" class="text-xl font-bold text-white"></p>
+            </div>
+            <div id="ishaCard" class="prayer-time flex flex-col items-center p-4 bg-gray-800 rounded-lg shadow-md col-span-2 sm:col-span-1">
+                <img src="images/isha.png" alt="Isha" class="h-12 w-12 mb-2">
+                <h3 class="font-semibold text-lg mb-1 text-white">Isya</h3>
+                <p id="ishaTime" class="text-xl font-bold text-white"></p>
+            </div>
+        </div>
+
+    <div id="islamicContent" class="mt-8">
+        <h2 class="text-xl font-bold mb-4">Doa Harian</h2>
+        <div id="doaContent" class="bg-gray-800 p-4 rounded-lg shadow-md mb-4">
+            <h3 class="font-semibold text-lg mb-2 text-white">Loading...</h3>
+            <p class="text-white">Please wait while we fetch the content.</p>
+        </div>
+        <script>
+            $(document).ready(function() {
+                $.ajax({
+                    url: 'https://doa-doa-api-ahmadramadhan.fly.dev/api',
+                    method: 'GET',
+                    success: function(data) {
+                        var content = '';
+                        var doaList = JSON.parse(data);
+                        var doa = doaList[Math.floor(Math.random() * doaList.length)];
+
+                        content += '<div class="bg-gray-800 p-4 rounded-lg shadow-md mb-4">';
+                                               content += '<h3 class="font-semibold text-lg mb-2 text-white">' + doa.judul + '</h3>';
+                        content += '<p class="text-white">' + doa.ayat + '</p>';
+                        content += '<p class="text-white">' + doa.latin + '</p>';;
+                        content += '</div>';
+                        $('#doaContent').html(content);
+                    },
+                    error: function() {
+                        $('#doaContent').html('<p class="text-white">Failed to load content. Please try again later.</p>');
+                    }
+                });
+            });
+        </script>
+    </div>
+    </div>
+    </div>
+
+
+
+    <script src="fetchPrayerTimes.js"></script>
+    <script>
+        $(document).ready(function() {
+
+            
+
+            function showMainContent() {
+                $("#locationPrompt").hide();
+                $("#mainContent").show();
+                fetchPrayerTimes();
+            }
+
+            function saveLocation(position) {
+                var latitude = position.coords.latitude;
+                var longitude = position.coords.longitude;
+                localStorage.setItem('userLatitude', latitude);
+                localStorage.setItem('userLongitude', longitude);
+                showMainContent();
+            }
+
+            function handleLocationError(error) {
+                console.log("Error: " + error.message);
+                showMainContent();
+            }
+
+            function checkStoredLocation() {
+                var storedLatitude = localStorage.getItem('userLatitude');
+                var storedLongitude = localStorage.getItem('userLongitude');
+                if (storedLatitude && storedLongitude) {
+                    showMainContent();
+                    return true;
+                }
+                return false;
+            }
+
+            if (!checkStoredLocation()) {
+                $("#locationPrompt").show();
+                $("#allowLocation").click(function() {
+                    if ("geolocation" in navigator) {
+                        navigator.geolocation.getCurrentPosition(saveLocation, handleLocationError);
+                    } else {
+                        console.log("Geolocation is not available in your browser.");
+                        showMainContent();
+                    }
+                });
+
+                $("#denyLocation").click(function() {
+                   alert("Location access denied");
+                });
+            }
+        });
+    </script>
+
+    <script>
+
+        function formatTime(time) {
+
+        const date = new Date(time * 1000);
+
+        let hours = date.getHours();
+        let minutes = date.getMinutes();
+        let ampm = hours >= 12 ? 'PM' : 'AM';
+        
+
+        hours = hours % 12;
+        hours = hours ? hours : 12; 
+
+        hours = hours < 10 ? '0' + hours : hours;
+        minutes = minutes < 10 ? '0' + minutes : minutes;
+        
+        return `${hours}:${minutes} ${ampm}`;
+        }
+
+        function fetchPrayerTimes() {
+            const latitude = localStorage.getItem('userLatitude');
+            const longitude = localStorage.getItem('userLongitude');
+        
+            // Check if latitude and longitude are available
+            if (latitude && longitude) {
+                // Construct the API URL
+                const apiUrl = `https://api.waktusolat.app/v2/solat/gps/${latitude}/${longitude}`;
+        
+                // Fetch data from the API
+                fetch(apiUrl)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Network response was not ok');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        console.log('Prayer times data:', data);
+                        const today = new Date().getDate(); // Get the current day of the month (1-31)
+                        
+            
+                        displayPrayerTimes(data.prayers[today-1]);
+                    })
+                    .catch(error => {
+                        console.error('There was a problem with the fetch operation:', error.message);
+                    });
+            } else {
+                console.log('Latitude and longitude are not available in localStorage');
+            }               
+        }
+    
+        function displayPrayerTimes(data) {
+            console.log(data);
+            
+            $("#fajrTime").text(formatTime(data.fajr));
+            $("#dhuhrTime").text(formatTime(data.dhuhr));
+            $("#asrTime").text(formatTime(data.asr));
+            $("#maghribTime").text(formatTime(data.maghrib));
+            $("#ishaTime").text(formatTime(data.isha)); 
+
+            const now = new Date();
+            const currentTime = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+            
+            let currentPrayer = '';
+            if (currentTime < data.fajr) currentPrayer = 'isha';
+            else if (currentTime < data.dhuhr) currentPrayer = 'fajr';
+            else if (currentTime < data.asr) currentPrayer = 'dhuhr';
+            else if (currentTime < data.maghrib) currentPrayer = 'asr';
+            else if (currentTime < data.isha) currentPrayer = 'maghrib';
+            else currentPrayer = 'isha';
+            $('.prayer-time').removeClass('current-prayer');
+            $(`#${currentPrayer}Card`).addClass('current-prayer');
+        }
+    </script>
+</body>
+</html>
