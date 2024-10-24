@@ -52,43 +52,11 @@
                 <p id="ishaTime" class="text-xl font-bold text-white"></p>
             </div>
         </div>
-
-    <div id="islamicContent" class="mt-8">
-        <h2 class="text-xl font-bold mb-4">Doa Harian</h2>
-        <div id="doaContent" class="bg-gray-800 p-4 rounded-lg shadow-md mb-4">
-            <h3 class="font-semibold text-lg mb-2 text-white">Loading...</h3>
-            <p class="text-white">Please wait while we fetch the content.</p>
-        </div>
-        <script>
-            $(document).ready(function() {
-                $.ajax({
-                    url: 'https://doa-doa-api-ahmadramadhan.fly.dev/api',
-                    method: 'GET',
-                    success: function(data) {
-                        var content = '';
-                        var doaList = JSON.parse(data);
-                        var doa = doaList[Math.floor(Math.random() * doaList.length)];
-
-                        content += '<div class="bg-gray-800 p-4 rounded-lg shadow-md mb-4">';
-                                               content += '<h3 class="font-semibold text-lg mb-2 text-white">' + doa.judul + '</h3>';
-                        content += '<p class="text-white">' + doa.ayat + '</p>';
-                        content += '<p class="text-white">' + doa.latin + '</p>';;
-                        content += '</div>';
-                        $('#doaContent').html(content);
-                    },
-                    error: function() {
-                        $('#doaContent').html('<p class="text-white">Failed to load content. Please try again later.</p>');
-                    }
-                });
-            });
-        </script>
-    </div>
     </div>
     </div>
 
 
 
-    <script src="fetchPrayerTimes.js"></script>
     <script>
         $(document).ready(function() {
 
