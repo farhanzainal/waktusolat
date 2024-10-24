@@ -24,7 +24,28 @@
     </div>
 
     <div id="mainContent" class="container mx-auto p-4" style="display: none;">
-        <h1 class="text-2xl font-bold mb-4">Waktu Solat Hari Ini</h1>
+
+        <h1 class="text-2xl font-bold mb-4">Tempat Anda</h1>
+
+        <div class="grid grid-cols-3 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4">
+            <div class="flex flex-col items-center p-4 bg-gray-800 rounded-lg shadow-md">
+                <h3 class="font-semibold text-lg mb-1 text-white">Kod Jakim</h3>
+                <p id="zoneCode" class="text-lg text-white"></p>
+            </div>
+            <div  class=" flex flex-col items-center p-4 bg-gray-800 rounded-lg shadow-md">
+                <h3 class="font-semibold text-lg mb-1 text-white">Daerah</h3>
+                <p id="zoneDistrict" class="text-lg  text-white"></p>
+            </div>
+            <div  class=" flex flex-col items-center p-4 bg-gray-800 rounded-lg shadow-md">
+                <h3 class="font-semibold text-lg mb-1 text-white">Negeri</h3>
+                <p id="zoneState" class="text-lg  text-white"></p>
+            </div>
+              
+        </div>
+
+
+
+        <h1 class="text-2xl font-bold mb-4 mt-8">Waktu Solat Hari Ini</h1>
         <div id="allPrayerTimes" class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
             <div id="fajrCard" class="prayer-time flex flex-col items-center p-4 bg-gray-800 rounded-lg shadow-md">
                 <img src="images/fajr.png" alt="Fajr" class="h-12 w-12 mb-2">
@@ -66,7 +87,7 @@
             </tr>
         </thead>
         <tbody id="monthlyPrayerTimesBody">
-            <!-- Rows will be generated dynamically using JavaScript -->
+    
         </tbody>
     </table>
 
@@ -146,16 +167,35 @@
         return `${hours}:${minutes} ${ampm}`;
         }
 
+        function fetchZone(zone) {
+        return fetch(`https://api.waktusolat.app/zones/${zone}`)
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                return response.json();
+            })
+            .then(data => {
+            
+                $("#zoneCode").html(data[0].jakimCode);
+                $("#zoneDistrict").html(data[0].daerah);
+                $("#zoneState").html(data[0].negeri);
+            })
+            .catch(error => {
+                console.error('There was a problem fetching the zone:', error.message);
+                throw error;
+            });
+        }
+
         function fetchPrayerTimes() {
             const latitude = localStorage.getItem('userLatitude');
             const longitude = localStorage.getItem('userLongitude');
         
-            // Check if latitude and longitude are available
-            if (latitude && longitude) {
-                // Construct the API URL
-                const apiUrl = `https://api.waktusolat.app/v2/solat/gps/${latitude}/${longitude}`;
         
-                // Fetch data from the API
+            if (latitude && longitude) {
+
+                const apiUrl = `https://api.waktusolat.app/v2/solat/gps/${latitude}/${longitude}`;
+   
                 fetch(apiUrl)
                     .then(response => {
                         if (!response.ok) {
@@ -164,10 +204,11 @@
                         return response.json();
                     })
                     .then(data => {
-                      
+                        const zone = data.zone;
+                        fetchZone(zone);
                         const today = new Date().getDate(); // Get the current day of the month (1-31)
                         
-            
+                        
                         displayPrayerTimes(data.prayers[today-1]);
                     })
                     .catch(error => {
