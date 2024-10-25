@@ -215,22 +215,19 @@
 
     <script>
 
-        function formatTime(time) {
-
-        const date = new Date(time * 1000);
-
-        let hours = date.getHours();
-        let minutes = date.getMinutes();
-        let ampm = hours >= 12 ? 'PM' : 'AM';
-        
-
-        hours = hours % 12;
-        hours = hours ? hours : 12; 
-
-        hours = hours < 10 ? '0' + hours : hours;
-        minutes = minutes < 10 ? '0' + minutes : minutes;
-        
-        return `${hours}:${minutes} ${ampm}`;
+        function formatPrayerTime(unixTime) {
+            const date = new Date(unixTime * 1000);
+            let hours = date.getHours();
+            let minutes = date.getMinutes();
+            let ampm = hours >= 12 ? 'PM' : 'AM';
+            
+            hours = hours % 12;
+            hours = hours ? hours : 12; 
+            
+            hours = hours < 10 ? '0' + hours : hours;
+            minutes = minutes < 10 ? '0' + minutes : minutes;
+            
+            return `${hours}:${minutes} ${ampm}`;
         }
 
         function fetchZone(zone) {
@@ -288,11 +285,11 @@
         function displayPrayerTimes(data) {
     
             
-            $("#fajrTime").text(formatTime(data.fajr));
-            $("#dhuhrTime").text(formatTime(data.dhuhr));
-            $("#asrTime").text(formatTime(data.asr));
-            $("#maghribTime").text(formatTime(data.maghrib));
-            $("#ishaTime").text(formatTime(data.isha)); 
+            $("#fajrTime").text(formatPrayerTime(data.fajr));
+            $("#dhuhrTime").text(formatPrayerTime(data.dhuhr));
+            $("#asrTime").text(formatPrayerTime(data.asr));
+            $("#maghribTime").text(formatPrayerTime(data.maghrib));
+            $("#ishaTime").text(formatPrayerTime(data.isha)); 
         }
     </script>
 
@@ -311,11 +308,11 @@
 
                     var row = `<tr>
                         <td class="px-4 py-2 text-white">${index + 1}</td>
-                        <td class="px-4 py-2 text-white">${formatTime(day.fajr)}</td>
-                        <td class="px-4 py-2 text-white">${formatTime(day.dhuhr)}</td>
-                        <td class="px-4 py-2 text-white">${formatTime(day.asr)}</td>
-                        <td class="px-4 py-2 text-white">${formatTime(day.maghrib)}</td>
-                        <td class="px-4 py-2 text-white">${formatTime(day.isha)}</td>
+                        <td class="px-4 py-2 text-white">${formatPrayerTime(day.fajr)}</td>
+                        <td class="px-4 py-2 text-white">${formatPrayerTime(day.dhuhr)}</td>
+                        <td class="px-4 py-2 text-white">${formatPrayerTime(day.asr)}</td>
+                        <td class="px-4 py-2 text-white">${formatPrayerTime(day.maghrib)}</td>
+                        <td class="px-4 py-2 text-white">${formatPrayerTime(day.isha)}</td>
                     </tr>`;
                     tbody.append(row);
                 });
@@ -376,10 +373,10 @@
     function updateProgress(){
             const percent = (audio.currentTime / audio.duration) * 100;
             progress.style.width = `${percent}%`;
-            currentTimeSpan.textContent = formatTime(audio.currentTime);
+            currentTimeSpan.textContent = formatAudioTime(audio.currentTime);
     }
     function setDuration() {
-        durationSpan.textContent = formatTime(audio.duration);
+        durationSpan.textContent = formatAudioTime(audio.duration);
     }
     function seek(e) {
         const rect = progressBar.getBoundingClientRect();
@@ -387,7 +384,7 @@
         audio.currentTime = percent * audio.duration;
     }
 
-    function formatTime(time) {
+    function formatAudioTime(time) {
         const minutes = Math.floor(time / 60);
         const seconds = Math.floor(time % 60);
         return `${minutes}:${seconds.toString().padStart(2, '0')}`;
