@@ -42,7 +42,29 @@
 
     <div id="mainContent" class="container mx-auto p-4" style="display: none;">
 
-        <h1 class="text-2xl font-bold mb-4">Tempat Anda</h1>
+        <div id="audioPlayer" class="mt-8 bg-gray-800 rounded-lg shadow-md p-4">
+            <h2 class="text-2xl font-bold mb-4 text-white" id="namaSurah">Surah Al-Quran</h2>
+            <div class="flex items-center mb-4">
+                <button id="playPauseBtn" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-full mr-4">
+                    <i class="fas fa-play"></i>
+                </button>
+                <div class="flex-grow">
+                    <div id="progressBar" class="bg-gray-600 rounded-full h-2 relative">
+                        <div id="progress" class="bg-green-500 h-2 rounded-full absolute top-0 left-0" style="width: 0%;"></div>
+                    </div>
+                </div>
+                <span id="currentTime" class="text-white ml-4">0:00</span>
+                <span class="text-white mx-2">/</span>
+                <span id="duration" class="text-white">0:00</span>
+            </div>
+            <div id="loadingBar" class="bg-gray-600 rounded-full h-2 relative hidden">
+                <div class="bg-blue-500 h-2 rounded-full absolute top-0 left-0 animate-pulse" style="width: 100%;"></div>
+            </div>
+            <audio id="surahAudio" src=""></audio>
+        </div>
+
+
+        <h1 class="text-2xl font-bold mb-4 mt-8">Tempat Anda</h1>
 
         <div class="grid grid-cols-1 sm:grid-cols-1 md:grid-cols-3 lg:grid-cols-3 gap-4">
             <div class="flex flex-col items-center p-4 bg-gray-800 rounded-lg shadow-md">
@@ -94,23 +116,29 @@
     <div id="monthlyPrayerTimesSection">
         <div class="flex justify-between items-center mb-4 mt-8">
             <h1 class="text-2xl font-bold">Waktu Solat Bulan Ini</h1>
-            <button id="printButton" class="btn btn-primary exclude-print">Print Waktu Solat Bulan Ini</button>
+            <button id="printButton" class="btn btn-primary exclude-print">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0110.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0l.229 2.523a1.125 1.125 0 01-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0021 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 00-1.913-.247M6.34 18H5.25A2.25 2.25 0 013 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 011.913-.247m10.5 0a48.536 48.536 0 00-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5zm-3 0h.008v.008H15V10.5z" />
+                </svg>
+            </button>
         </div>
-        <table id="monthlyPrayerTimes" class="table-auto w-full text-center bg-gray-800 rounded-lg shadow-md">
-            <thead>
-                <tr>
-                    <th class="px-4 py-2 text-white">Hari</th>
-                    <th class="px-4 py-2 text-white">Subuh</th>
-                    <th class="px-4 py-2 text-white">Zuhur</th>
-                    <th class="px-4 py-2 text-white">Asar</th>
-                    <th class="px-4 py-2 text-white">Maghrib</th>
-                    <th class="px-4 py-2 text-white">Isya</th>
-                </tr>
-            </thead>
-            <tbody id="monthlyPrayerTimesBody">
-        
-            </tbody>
-        </table>
+        <div class="overflow-x-auto">
+            <table id="monthlyPrayerTimes" class="table-auto w-full text-center bg-gray-800 rounded-lg shadow-md">
+                <thead>
+                    <tr>
+                        <th class="px-4 py-2 text-white whitespace-nowrap">Hari</th>
+                        <th class="px-4 py-2 text-white whitespace-nowrap">Subuh</th>
+                        <th class="px-4 py-2 text-white whitespace-nowrap">Zuhur</th>
+                        <th class="px-4 py-2 text-white whitespace-nowrap">Asar</th>
+                        <th class="px-4 py-2 text-white whitespace-nowrap">Maghrib</th>
+                        <th class="px-4 py-2 text-white whitespace-nowrap">Isya</th>
+                    </tr>
+                </thead>
+                <tbody id="monthlyPrayerTimesBody">
+            
+                </tbody>
+            </table>
+        </div>
     </div>
 
     </div>
@@ -122,11 +150,23 @@
         $(document).ready(function() {
 
             
+            $('#playAudioBtn').on('click', function() {
+                var audio = $('#surahAudio')[0];
+                if (audio.paused) {
+                    audio.play();
+                } else {
+                    audio.pause();
+                    audio.currentTime = 0;
+                }
+            });
+
 
             function showMainContent() {
                 $("#locationPrompt").hide();
                 $("#mainContent").show();
                 fetchPrayerTimes();
+                fetchMonthlyPrayerTimes();
+                fetchAlquran();
             }
 
             function saveLocation(position) {
@@ -253,19 +293,6 @@
             $("#asrTime").text(formatTime(data.asr));
             $("#maghribTime").text(formatTime(data.maghrib));
             $("#ishaTime").text(formatTime(data.isha)); 
-
-            const now = new Date();
-            const currentTime = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-            
-            let currentPrayer = '';
-            if (currentTime < data.fajr) currentPrayer = 'isha';
-            else if (currentTime < data.dhuhr) currentPrayer = 'fajr';
-            else if (currentTime < data.asr) currentPrayer = 'dhuhr';
-            else if (currentTime < data.maghrib) currentPrayer = 'asr';
-            else if (currentTime < data.isha) currentPrayer = 'maghrib';
-            else currentPrayer = 'isha';
-            $('.prayer-time').removeClass('current-prayer');
-            $(`#${currentPrayer}Card`).addClass('current-prayer');
         }
     </script>
 
@@ -295,10 +322,85 @@
             });
         }
 
-        $(document).ready(function() {
-            fetchMonthlyPrayerTimes();
+        function fetchAlquran() {
+        $.ajax({
+            url: 'https://open-api.my.id/api/quran/surah',
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                
+                var randomSurahIndex = Math.floor(Math.random() * 114);
+                var randomSurah = response[randomSurahIndex];
+                $("#namaSurah").text(randomSurah.nama+"("+randomSurah.nama_latin+")");
+                $("#surahAudio").attr("src", randomSurah.audio);
+                console.log(randomSurah);
+            },
+            error: function(xhr, status, error) {
+                // Handle any errors here
+                console.error('Error fetching Quran data:', error);
+            }
         });
+        }
+
+
+
+         
     </script>
+
+<script>
+    const audio = document.getElementById('surahAudio');
+    const playPauseBtn = document.getElementById('playPauseBtn');
+    const progressBar = document.getElementById('progressBar');
+    const progress = document.getElementById('progress');
+    const currentTimeSpan = document.getElementById('currentTime');
+    const durationSpan = document.getElementById('duration');
+    const loadingBar = document.getElementById('loadingBar');
+
+    playPauseBtn.addEventListener('click', togglePlayPause);
+    audio.addEventListener('timeupdate', updateProgress);
+    audio.addEventListener('loadedmetadata', setDuration);
+    progressBar.addEventListener('click', seek);
+    audio.addEventListener('waiting', showLoading);
+    audio.addEventListener('canplay', hideLoading);
+
+    function togglePlayPause() {
+        if (audio.paused) {
+            audio.play();
+            playPauseBtn.innerHTML = '<i class="fas fa-pause"></i>';
+        } else {
+            audio.pause();
+            playPauseBtn.innerHTML = '<i class="fas fa-play"></i>';
+        }
+    }
+
+    function updateProgress(){
+            const percent = (audio.currentTime / audio.duration) * 100;
+            progress.style.width = `${percent}%`;
+            currentTimeSpan.textContent = formatTime(audio.currentTime);
+    }
+    function setDuration() {
+        durationSpan.textContent = formatTime(audio.duration);
+    }
+    function seek(e) {
+        const rect = progressBar.getBoundingClientRect();
+        const percent = (e.clientX - rect.left) / rect.width;
+        audio.currentTime = percent * audio.duration;
+    }
+
+    function formatTime(time) {
+        const minutes = Math.floor(time / 60);
+        const seconds = Math.floor(time % 60);
+        return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
+
+    function showLoading() {
+        loadingBar.classList.remove('hidden');
+    }
+
+    function hideLoading() {
+        loadingBar.classList.add('hidden');
+    }
+</script>
     
 </body>
 </html>
